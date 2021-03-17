@@ -4,10 +4,14 @@ from django.conf import settings
 
 class Favorite(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites",
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorites",
     )
     recipe = models.ForeignKey(
-        "recipes.Recipe", on_delete=models.CASCADE, related_name="favorite_objects"
+        "recipes.Recipe",
+        on_delete=models.CASCADE,
+        related_name="favorite_objects"
     )
 
     class Meta:
@@ -19,10 +23,14 @@ class Favorite(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="following"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following"
     )
     following = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="followers"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="followers"
     )
 
     class Meta:
@@ -34,7 +42,9 @@ class Follow(models.Model):
 
 class Purchase(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="purchases"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="purchases"
     )
     recipe = models.ForeignKey(
         "recipes.Recipe", on_delete=models.CASCADE, related_name='purchases'

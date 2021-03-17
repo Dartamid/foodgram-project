@@ -35,9 +35,15 @@ class RecipeListView(ListView):
         context = super().get_context_data(**kwargs)
 
         if self.request.user.is_authenticated:
-            favorites = self.request.user.favorites.values_list("recipe", flat=True)
+            favorites = self.request.user.favorites.values_list(
+                "recipe",
+                flat=True
+            )
             context["favorites"] = favorites
-            purchases = self.request.user.purchases.values_list("recipe", flat=True)
+            purchases = self.request.user.purchases.values_list(
+                "recipe",
+                flat=True
+            )
             context["purchases"] = purchases
 
         context["tags"] = self.request.GET.get("tags", "")

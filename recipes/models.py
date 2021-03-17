@@ -15,7 +15,9 @@ class Ingredient(models.Model):
 class RecipeIngredients(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=True)
     ingredient = models.ForeignKey(
-        "Ingredient", on_delete=models.CASCADE, related_name="ingredient_amounts"
+        "Ingredient",
+        on_delete=models.CASCADE,
+        related_name="ingredient_amounts"
     )
     recipe = models.ForeignKey(
         "Recipe", on_delete=models.CASCADE, related_name="ingredient_amounts"
@@ -34,7 +36,9 @@ class Tag(models.Model):
 class RecipeManager(models.Manager):
     def filter_by_tags(self, tags):
         if tags:
-            queryset = Recipe.objects.filter(tags__name__in=tags.split(",")).distinct()
+            queryset = Recipe.objects.filter(
+                tags__name__in=tags.split(",")
+            ).distinct()
         else:
             queryset = Recipe.objects.all()
         return queryset
@@ -79,7 +83,9 @@ class Recipe(models.Model):
                 self.tags.add(tag)
 
         ingredients = filter_by_key(form_data, "nameIngredient")
-        ingredient_objects = Ingredient.objects.filter(name__in=ingredients).all()
+        ingredient_objects = Ingredient.objects.filter(
+            name__in=ingredients
+        ).all()
         for obj in ingredient_objects:
             ingredients[ingredients.index(obj.name)] = obj
         values = filter_by_key(form_data, "valueIngredient")
