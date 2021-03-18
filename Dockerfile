@@ -6,15 +6,9 @@ ENV PYTHONBUFFERED 1
 WORKDIR /code
 COPY requirements.txt /code
 
-RUN apk update \
-    && apk add gcc python3-dev musl-dev \
-    && apk add postgresql \
-    && apk add postgresql-dev \
-    && pip3 install psycopg2 \
-    && apk add jpeg-dev zlib-dev libjpeg \
-    && pip3 install Pillow
-
-RUN pip3 install -r /code/requirements.txt --no-cache-dir
+RUN apk update /
+    && apk add postgresql-dev gcc python3-dev musl-dev /
+    && pip install -r /code/requirements.txt --no-cache-dir
 
 COPY . /code
 
