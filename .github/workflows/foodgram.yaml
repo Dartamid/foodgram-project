@@ -67,6 +67,7 @@ jobs:
             -o ~/docker-compose.yaml \
             https://raw.githubusercontent.com/dartamid/foodgram-project/master/docker-compose-prod.yaml
             sudo docker-compose down
+            echo Containers down
             sudo service docker start && sudo docker-compose up -d --build
             sudo docker-compose exec -T web sh entrypoint.sh
 
