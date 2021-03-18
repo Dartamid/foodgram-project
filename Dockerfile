@@ -7,14 +7,14 @@ WORKDIR /code
 COPY requirements.txt /code
 
 RUN apk update \
-    && apk add build-deps gcc python3-dev musl-dev \
+    && apk add gcc python3-dev musl-dev \
     && apk add postgresql \
     && apk add postgresql-dev \
-    && pip install psycopg2 \
+    && pip3 install psycopg2 \
     && apk add jpeg-dev zlib-dev libjpeg \
-    && pip install Pillow
+    && pip3 install Pillow
 
-RUN pip install -r /code/requirements.txt --no-cache-dir
+RUN pip3 install -r /code/requirements.txt --no-cache-dir
 
 COPY . /code
 
