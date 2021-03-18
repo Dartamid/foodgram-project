@@ -9,4 +9,4 @@ RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev && pip install
 
 COPY . /code
 
-CMD gunicorn api_yamdb.wsgi:application --bind 0.0.0.0:8000
+CMD gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000
