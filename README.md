@@ -1,5 +1,4 @@
-![Foodrgram](https://github.com/SergePogorelov/foodgram-project/workflows/Foodrgram/badge.svg)
-
+[![Foodrgram](https://github.com/Dartamid/foodgram-project/actions/workflows/foodgram_workflow.yaml/badge.svg?branch=master)](https://github.com/Dartamid/foodgram-project/actions/workflows/foodgram_workflow.yaml)
 ### «Продуктовый помощник».
 Это онлайн-сервис, где пользователи могут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
@@ -174,7 +173,7 @@ TELEGRAM_TOKEN # Токен бота
 - [WeasyPrint](https://weasyprint.org/) 
 - [Yandex Cloud](https://cloud.yandex.ru/)
 - [PostgreSQL](https://www.postgresql.org/)
-- [Dokcer](https://www.docker.com/)
+- [Docker](https://www.docker.com/)
 - [Gunicorn](https://gunicorn.org/)
 - [Nginx](https://nginx.org/)
 - [GitHub Actions](https://github.com/features/actions)
