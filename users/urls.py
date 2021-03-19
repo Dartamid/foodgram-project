@@ -1,8 +1,8 @@
-from django.urls import path, include
+from django.urls import path
+
 from . import views
 
+
 urlpatterns = [
-    path("login/", views.FoodgramLoginView.as_view(), name="login"),
-    path("signup/", views.RegistrationView.as_view(), name="signup"),
-    path("", include("django.contrib.auth.urls")),
+    path("signup/", views.SignUp.as_view(), name="signup")
 ]

@@ -1,122 +1,144 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
-from django.views.generic import FormView, ListView, UpdateView, DetailView
-from django.views import View
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic import DetailView, ListView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.contrib.auth import get_user_model
+from django.urls import reverse_lazy
 
-from .forms import RecipeCreationForm
-from .models import Recipe
-from .mixins import RecipeAuthorOnlyMixin
-
-
-class RecipeCreationView(LoginRequiredMixin, FormView):
-    form_class = RecipeCreationForm
-    template_name = "formRecipe.html"
-    success_url = "/"
-
-    def form_valid(self, form):
-        # Поля author, name, photo, description, cooking_time сохранятся тут
-        recipe = form.save(commit=False)
-        recipe.author = self.request.user
-        recipe.save()
-        # А тэги и ингредиенты сохраним отдельно как m2m поля
-        recipe.create_m2m_fields(form.data)
-
-        return redirect(self.success_url)
+from .utils import get_ingredients, create_ingridients
+from .mixins import RecipeMixin, IsAuthorMixin
+from .forms import RecipeForm
+from .models import (
+    Recipe,
+    Subscription,
+    Favorite,
+)
 
 
-class RecipeListView(ListView):
-    model = Recipe
-    context_object_name = "recipes"
-    template_name = "index.html"
-    paginate_by = 6
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            favorites = self.request.user.favorites.values_list(
-                "recipe",
-                flat=True
-            )
-            context["favorites"] = favorites
-            purchases = self.request.user.purchases.values_list(
-                "recipe",
-                flat=True
-            )
-            context["purchases"] = purchases
-
-        context["tags"] = self.request.GET.get("tags", "")
-
-        return context
-
-    def get_queryset(self):
-        tags = self.request.GET.get("tags", "")
-
-        queryset = Recipe.objects.filter_by_tags(
-            tags
-        ).select_related(
-            "author"
-        ).prefetch_related(
-            "tags"
-        ).all()
-        return queryset
-
-
-class RecipeUpdateView(LoginRequiredMixin, RecipeAuthorOnlyMixin, UpdateView):
-    model = Recipe
-    template_name = "formChangeRecipe.html"
-    fields = ("name", "photo", "description", "cooking_time")
-    template_name_field = "recipe"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tags = self.object.tags.values_list("name", flat=True)
-        context["tags"] = tags
-        return context
-
-    def form_valid(self, form):
-        recipe = form.save()
-
-        # Удалим все тэги и ингредиенты, а затем добавим новые
-        recipe.tags.clear()
-        recipe.ingredient_amounts.all().delete()
-
-        recipe.create_m2m_fields(form.data)
-
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        return reverse("recipe-detail", kwargs={"slug": self.object.slug})
+User = get_user_model()
 
 
 class RecipeDetailView(DetailView):
     model = Recipe
-    template_name = "singlePage.html"
-    template_name_field = "recipe"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        recipe = self.get_object()
+        context["current_page"] = "recipe"
+        context["ingredients"] = get_ingredients(recipe)
         if self.request.user.is_authenticated:
-            is_favorite = self.request.user.favorites.filter(
-                recipe=self.object
+            context["is_subscribed"] = Subscription.objects.filter(
+                author=recipe.author, user=self.request.user
             ).exists()
-            is_following = self.request.user.following.filter(
-                following=self.object.author
+            context["is_favorite"] = Favorite.objects.filter(
+                user=self.request.user, recipe=recipe
             ).exists()
-            is_purchased = self.request.user.purchases.filter(
-                recipe=self.object
-            ).exists()
-            context["is_favorite"] = is_favorite
-            context["is_following"] = is_following
-            context["is_purchased"] = is_purchased
         return context
 
 
-class RecipeDeleteView(LoginRequiredMixin, RecipeAuthorOnlyMixin, View):
+class RecipeCreateView(LoginRequiredMixin, CreateView):
+    model = Recipe
+    form_class = RecipeForm
 
-    def get(self, request, *args, **kwargs):
-        recipe = get_object_or_404(Recipe, slug=kwargs.get("slug"))
-        recipe.delete()
-        return redirect("recipe-list")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_page"] = "create_recipe"
+        return context
+
+    def form_valid(self, form):
+        recipe = form.save(commit=False)
+        recipe.author = self.request.user
+        recipe.save()
+        create_ingridients(recipe, self.request.POST)
+        form.save_m2m()
+        return redirect(
+            "recipe_detail", recipe.author.username, recipe.slug
+        )
+
+    def form_invalid(self, form):
+        return render(self.request, "recipes/recipe_form.html", {"form": form})
+
+
+class RecipeUpdateView(LoginRequiredMixin, IsAuthorMixin, UpdateView):
+    model = Recipe
+    form_class = RecipeForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_page"] = "recipe"
+        context["ingredients"] = get_ingredients(self.get_object())
+        return context
+
+    def form_valid(self, form):
+        self.object.ingredient_values.all().delete()
+        create_ingridients(self.object, self.request.POST)
+        form.save()
+        return redirect(
+            "recipe_detail", self.object.author.username, self.object.slug
+        )
+
+    def form_invalid(self, form):
+        return render(self.request, "recipes/recipe_form.html", {"form": form})
+
+
+class RecipeDeleteView(LoginRequiredMixin, IsAuthorMixin, DeleteView):
+    model = Recipe
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "author_recipe_list", args=[self.request.user.username]
+        )
+
+    def get(self, *args, **kwargs):
+        self.object = self.get_object()
+        return self.post(*args, **kwargs)
+
+
+class RecipeListView(RecipeMixin, ListView):
+    pass
+
+
+class AuthorRecipeListView(RecipeMixin, ListView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        author = get_object_or_404(User, username=self.kwargs.get("username"))
+        context["author"] = author
+        if self.request.user.is_authenticated:
+            context["is_subscribed"] = Subscription.objects.filter(
+                author=author, user=self.request.user
+            ).exists()
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        username = self.kwargs.get("username")
+        if username is not None:
+            queryset = queryset.filter(author__username=username)
+        return queryset
+
+
+class FavoriteRecipeListView(LoginRequiredMixin, RecipeMixin, ListView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_page"] = "favorite"
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        recipe_ids = Favorite.objects.filter(
+            user=self.request.user
+        ).values_list("recipe_id", flat=True)
+        return queryset.filter(id__in=recipe_ids)
+
+
+class SubscriptionListView(LoginRequiredMixin, ListView):
+    model = Subscription
+    paginate_by = 6
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_page"] = "subscription"
+        return context
+
+    def get_queryset(self):
+        return Subscription.objects.filter(user=self.request.user)

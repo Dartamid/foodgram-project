@@ -1,20 +1,23 @@
-from django.contrib.auth.views import LoginView
-from django.shortcuts import redirect
-from django.views.generic import FormView
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect, render
 
-from .forms import FoodgramUserCreationForm
+from django.views.generic import CreateView
 
-
-class FoodgramLoginView(LoginView):
-    redirect_authenticated_user = True
+from .forms import CreationForm
 
 
-class RegistrationView(FormView):
-    form_class = FoodgramUserCreationForm
-    template_name = "registration/signup.html"
-    redirect_authenticated_user = True
-    success_url = "/"
+class SignUp(CreateView):
+    form_class = CreationForm
+    template_name = "signup.html"
 
-    def form_valid(self, form):
-        form.save()
-        return redirect(self.success_url)
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            user = form.save()
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password1"],
+            )
+            login(request, user)
+            return redirect("recipe_list")
+        return render(request, "signup.html", {"form": form})

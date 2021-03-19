@@ -1,18 +1,39 @@
 from django.urls import path
+
 from . import views
 
+
 urlpatterns = [
-    path("add/", views.RecipeCreationView.as_view(), name="recipe-creation"),
+    path("create/", views.RecipeCreateView.as_view(), name="recipe_create"),
     path(
-        "<slug>/edit/",
+        "<str:username>/",
+        views.AuthorRecipeListView.as_view(),
+        name="author_recipe_list",
+    ),
+    path(
+        "<str:username>/subscription/",
+        views.SubscriptionListView.as_view(),
+        name="subscription_list",
+    ),
+    path(
+        "<str:username>/favorite/",
+        views.FavoriteRecipeListView.as_view(),
+        name="favorite_list",
+    ),
+    path(
+        "<str:username>/<str:slug>/edit/",
         views.RecipeUpdateView.as_view(),
-        name="recipe-update"
+        name="recipe_edit",
     ),
-    path("<slug>/", views.RecipeDetailView.as_view(), name="recipe-detail"),
     path(
-        "<slug>/delete/",
+        "<str:username>/<str:slug>/delete/",
         views.RecipeDeleteView.as_view(),
-        name="recipe-delete"
+        name="recipe_delete",
     ),
-    path("", views.RecipeListView.as_view(), name="recipe-list"),
+    path(
+        "<str:username>/<str:slug>/",
+        views.RecipeDetailView.as_view(),
+        name="recipe_detail",
+    ),
+    path("", views.RecipeListView.as_view(), name="recipe_list"),
 ]

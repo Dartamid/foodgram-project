@@ -1,28 +1,61 @@
 from django.contrib import admin
 
-from .models import Recipe, Ingredient, RecipeIngredients, Tag
+from .models import (
+    Ingredient,
+    IngredientValue,
+    Recipe,
+    Subscription,
+    Favorite,
+)
+
+
+class IngredientValueInline(admin.StackedInline):
+    model = IngredientValue
 
 
 @admin.register(Recipe)
-class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("name", "author")
-    readonly_fields = ("favorite_counter",)
-    list_filter = ("name", "author", "tags")
-    search_fields = ("name",)
+class RecepieAdmin(admin.ModelAdmin):
+    inlines = [
+        IngredientValueInline,
+    ]
+    prepopulated_fields = {"slug": ("name",)}
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related("author")
+    list_display = ("name", "pub_date", "author", "display_favorites")
 
-    def favorite_counter(self, obj):
-        return obj.favorite_objects.count()
+    fieldsets = (
+        (None, {"fields": ("author", "name", "slug")}),
+        (
+            "Теги",
+            {
+                "fields": (
+                    (
+                        "breakfast",
+                        "lunch",
+                        "dinner",
+                    ),
+                )
+            },
+        ),
+        (
+            "Информация и фото",
+            {
+                "fields": (
+                    "cooking_time",
+                    "description",
+                    "image",
+                ),
+            },
+        ),
+    )
+
+    list_filter = ("author", "name", "breakfast", "lunch", "dinner")
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("name", "unit")
-    list_filter = ("name",)
-    search_fields = ("name",)
+    list_display = ("title", "dimension")
+    search_fields = ("title",)
 
 
-admin.site.register(RecipeIngredients)
-admin.site.register(Tag)
+admin.site.register(Subscription)
+admin.site.register(Favorite)

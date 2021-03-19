@@ -1,44 +1,23 @@
-from django.utils.text import slugify
-
-russian_alphabet = {
-    "а": "a",
-    "б": "b",
-    "в": "v",
-    "г": "g",
-    "д": "d",
-    "е": "e",
-    "ё": "yo",
-    "ж": "zh",
-    "з": "z",
-    "и": "i",
-    "й": "y",
-    "к": "k",
-    "л": "l",
-    "м": "m",
-    "н": "n",
-    "о": "o",
-    "п": "p",
-    "р": "r",
-    "с": "s",
-    "т": "t",
-    "у": "u",
-    "ф": "f",
-    "х": "kh",
-    "ц": "ts",
-    "ч": "ch",
-    "ш": "sh",
-    "щ": "sch",
-    "ы": "y",
-    "э": "e",
-    "ю": "yu",
-    "я": "ya",
-}
+from .models import Ingredient, IngredientValue
 
 
-def russian_slugify(text):
-    return slugify("".join(russian_alphabet.get(s, s) for s in text.lower()))
+def get_ingredients(recipe):
+    ingredients = []
+    for ingredient in recipe.ingredients.all():
+        value = ingredient.ingredient_values.get(recipe=recipe)
+        ingredients.append((ingredient.title, value, ingredient.dimension))
+    return ingredients
 
 
-def filter_by_key(obj, query):
-    filtered_items = filter(lambda e: e[0].startswith(query), obj.items())
-    return [v for k, v in filtered_items]
+def create_ingridients(recipe, data):
+    for key, value in data.items():
+        arg = key.split("_")
+        if arg[0] == "nameIngredient":
+            title = value
+        if arg[0] == "valueIngredient":
+            ingredient, _ = Ingredient.objects.get_or_create(
+                title=title, defaults={"dimension": "шт"}
+            )
+            IngredientValue.objects.update_or_create(
+                ingredient=ingredient, recipe=recipe, defaults={"value": value}
+            )

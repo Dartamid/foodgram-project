@@ -1,40 +1,42 @@
 from django.urls import path
+
 from . import views
+
 
 urlpatterns = [
     path(
-        "ingredients/",
-        views.IngredientListView.as_view(),
-        name="ingredients-list"
+        "v1/subscriptions/<int:pk>/",
+        views.SubscriptionDeleteAPIView.as_view(),
+        name="delete_subscriptions",
     ),
     path(
-        "favorites/",
-        views.CreateFavoriteView.as_view(),
-        name="favorite-create"
+        "v1/subscriptions/",
+        views.SubscriptionCreateAPIView.as_view(),
+        name="create_subscriptions",
     ),
     path(
-        "favorites/<int:pk>/",
-        views.DeleteFavoriteView.as_view(),
-        name="favorite-delete",
+        "v1/favorites/<int:pk>/",
+        views.FavoriteDeleteAPIView.as_view(),
+        name="delete_favorites",
     ),
     path(
-        "subscriptions/",
-        views.CreateFollowView.as_view(),
-        name="follow-create"
+        "v1/favorites/",
+        views.FavoriteCreateAPIView.as_view(),
+        name="create_favorites",
     ),
     path(
-        "subscriptions/<int:pk>/",
-        views.DeleteFollowView.as_view(),
-        name="follow-delete",
+        "v1/purchases/",
+        views.ShoppingListCreateAPIView.as_view(),
+        name="create_purchases",
     ),
     path(
-        "purchases/",
-        views.CreatePurchaseView.as_view(),
-        name="purchase-create"
+        "v1/purchases/<int:pk>/",
+        views.ShoppingListDestroyAPIView.as_view(),
+        name="delete_purchases",
     ),
     path(
-        "purchases/<int:pk>/",
-        views.DeletePurchaseView.as_view(),
-        name="purchase-delete",
+        "v1/ingredients/",
+        views.IngredientListAPIView.as_view(),
+        name="ingredients_list",
     ),
 ]

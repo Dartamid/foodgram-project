@@ -2,39 +2,40 @@ version: '3.5'
 
 volumes:
   postgres_data:
-  nginx_config:
-  static_content:
-  media:
+  static_volume:
+  media_volume:
 
 services:
-
   db:
-    image: postgres:12.4-alpine
+    image: postgres:13.1
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+    env_file:
+      - ./.env
 
   web:
-    build: .
     image: dartamid/dart_foodgram:latest
     restart: always
     volumes:
-      - nginx_config:/code/nginx
-      - static_content:/code/static
-      - media:/code/media
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    expose:
+      - 8000
     depends_on:
       - db
-
+    env_file:
+      - ./.env
+    command: bash -c "python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000"
+      
   nginx:
     image: nginx:1.19.0-alpine
-    volumes:
-      - nginx_config:/etc/nginx/conf.d
-      - static_content:/static
-      - media:/code/media
-    ports:
-      - 80:80
+    restart: always
+    ports: 
+      - "80:80"
     depends_on:
       - web
+    volumes:
+      - nginx_config:/etc/nginx/conf.d
+      - static_volume:/code/static/
+      - media_volume:/code/media/

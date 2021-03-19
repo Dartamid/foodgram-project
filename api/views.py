@@ -1,59 +1,88 @@
-from rest_framework.generics import ListAPIView, CreateAPIView
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from django.shortcuts import get_object_or_404
-
-from .serializers import (
-    IngredientListSerializer,
-    FavoriteSerializer,
-    FollowSerializer,
-    PurchaseSerializer,
+from django.contrib.auth import get_user_model
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    get_object_or_404,
 )
-from recipes.models import Ingredient
-from accounts.models import Favorite, Follow, Purchase
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+from recipes.models import Ingredient, Subscription, Favorite, Recipe
+from purchases.shoppinglist import ShoppingList
+from .serializers import (
+    IngredientSerializer,
+    SubscriptionSerializer,
+    FavoriteSerializer,
+    ShoppingListSerializer,
+)
 
 
-class IngredientListView(ListAPIView):
-    serializer_class = IngredientListSerializer
-    model = Ingredient
+User = get_user_model()
+
+
+class IngredientListAPIView(ListAPIView):
+    serializer_class = IngredientSerializer
 
     def get_queryset(self):
-        if "query" in self.request.query_params:
-            return Ingredient.objects.filter(
-                name__startswith=self.request.query_params["query"].lower()
-            ).all()
-        return Ingredient.objects.all()
+        queryset = Ingredient.objects.all()
+        query = self.request.query_params.get("query", None)
+
+        if query is not None:
+            queryset = queryset.filter(title__icontains=query)
+
+        return queryset
 
 
-class CreateFavoriteView(CreateAPIView):
+class SubscriptionCreateAPIView(CreateAPIView):
+    serializer_class = SubscriptionSerializer
+
+
+class SubscriptionDeleteAPIView(DestroyAPIView):
+    serializer_class = SubscriptionSerializer
+    queryset = User.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        Subscription.objects.filter(
+            user=self.request.user, author=self.get_object()
+        ).delete()
+        return Response(data={"success": True})
+
+
+class FavoriteCreateAPIView(CreateAPIView):
     serializer_class = FavoriteSerializer
 
 
-class DeleteFavoriteView(APIView):
-    def delete(self, request, pk):
-        favorite = get_object_or_404(Favorite, user=request.user, recipe=pk)
-        favorite.delete()
-        return Response({"success": "true"})
+class FavoriteDeleteAPIView(DestroyAPIView):
+    serializer_class = FavoriteSerializer
+    queryset = Recipe.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        Favorite.objects.filter(
+            user=self.request.user, recipe=self.get_object()
+        ).delete()
+        return Response(data={"success": True})
 
 
-class CreateFollowView(CreateAPIView):
-    serializer_class = FollowSerializer
+class ShoppingListCreateAPIView(CreateAPIView):
+    serializer_class = ShoppingListSerializer
+    queryset = Recipe.objects.all()
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(request=request)
+        return Response(data={"success": True})
 
 
-class DeleteFollowView(APIView):
-    def delete(self, request, pk):
-        follow = get_object_or_404(Follow, user=request.user, following=pk)
-        follow.delete()
-        return Response({"success": "true"})
+class ShoppingListDestroyAPIView(DestroyAPIView):
+    serializer_class = ShoppingListSerializer
+    queryset = Recipe.objects.all()
+    permission_classes = [AllowAny]
 
-
-class CreatePurchaseView(CreateAPIView):
-    serializer_class = PurchaseSerializer
-
-
-class DeletePurchaseView(APIView):
-    def delete(self, request, pk):
-        purchase = get_object_or_404(Purchase, user=request.user, recipe=pk)
-        purchase.delete()
-        return Response({"success": "true"})
+    def destroy(self, request, *args, **kwargs):
+        recipe = self.get_object()
+        shoppinglist = ShoppingList(request)
+        shoppinglist.remove(recipe.id)
+        return Response(data={"success": True})
