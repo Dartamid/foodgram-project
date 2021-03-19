@@ -21,7 +21,7 @@ services:
     restart: always
     volumes:
       - nginx_config:/code/nginx
-      - static_content:/code/staticfiles
+      - static_content:/code/static
     depends_on:
       - db
 
