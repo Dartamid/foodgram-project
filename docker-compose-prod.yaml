@@ -11,6 +11,8 @@ services:
     image: postgres:12.4-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - "5432"
 
   web:
     image: dartamid/dart_foodgram:latest
