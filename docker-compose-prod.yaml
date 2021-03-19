@@ -4,6 +4,7 @@ volumes:
   postgres_data:
   nginx_config:
   static_content:
+  media:
 
 services:
 
@@ -22,6 +23,7 @@ services:
     volumes:
       - nginx_config:/code/nginx
       - static_content:/code/static
+      - media:/code/media
     depends_on:
       - db
 
@@ -30,6 +32,7 @@ services:
     volumes:
       - nginx_config:/etc/nginx/conf.d
       - static_content:/static
+      - media:/code/media
     ports:
       - 80:80
     depends_on:
