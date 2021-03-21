@@ -22,13 +22,13 @@ class RecipeMixin:
         query_filters = self.request.GET.getlist("filters", Tag.TAGS)
 
         if len(query_filters) == 1:
-            f = dict.fromkeys(query_filters, True)
-            return queryset.filter(**f)
+            first_filter = dict.fromkeys(query_filters, True)
+            return queryset.filter(**first_filter)
 
         if len(query_filters) == 2:
-            f1 = dict.fromkeys([query_filters[0]], True)
-            f2 = dict.fromkeys([query_filters[1]], True)
-            return queryset.filter(Q(**f1) | Q(**f2))
+            first_filter = dict.fromkeys([query_filters[0]], True)
+            second_filter = dict.fromkeys([query_filters[1]], True)
+            return queryset.filter(Q(**first_filter) | Q(**second_filter))
 
         return queryset
 

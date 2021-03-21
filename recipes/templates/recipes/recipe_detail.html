@@ -46,7 +46,7 @@
                 <p class="single-card__text"><span class="icon-time"></span> {{ object.cooking_time }} мин.</p>
                 
                 <ul class="single-card__items">
-                    <li class="single-card__item"><p class="single-card__text"><span class="icon-user"></span> <a href="{%url "author_recipe_list" object.author.username %}" style="color: black">{{ object.author.get_full_name }}</a></p></li>
+                    <li class="single-card__item"><p class="single-card__text"><span class="icon-user"></span> <a href="{% url "author_recipe_list" object.author.username %}" style="color: black">{{ object.author.get_full_name }}</a></p></li>
                     {% if user == object.author %}
                         <li class="single-card__item">  <a style="margin-left: 2.5em" href="{% url "recipe_edit" object.author.username object.slug %}" class="single-card__text">Редактировать рецепт</a></li>
                     {% endif %}
@@ -56,7 +56,7 @@
 
             <ul class="single-card__items">
             {% if recipe.slug in shoplist %}                         
-                <li class="single-card__item"><button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span> Рецепт добавлен</button></li>
+                <li class="single-card__item"><button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button></li>
             {% else %}
                 <li class="single-card__item"><button class="button button_style_blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button></li>
             {% endif %}

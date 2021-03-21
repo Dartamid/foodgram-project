@@ -10,7 +10,7 @@ handler404 = "foodgram.views.page_not_found"  # noqa
 handler500 = "foodgram.views.server_error"  # noqa
 
 urlpatterns = [
-    path("api/", include("api.urls")),
+    path("api/v1/", include("api.urls")),
     path("admin/", admin.site.urls),
     path("auth/", include("users.urls")),
     path("auth/", include("django.contrib.auth.urls")),

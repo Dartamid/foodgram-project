@@ -26,7 +26,7 @@ class IngredientListAPIView(ListAPIView):
 
     def get_queryset(self):
         queryset = Ingredient.objects.all()
-        query = self.request.query_params.get("query", None)
+        query = self.request.query_params.get("query")
 
         if query is not None:
             queryset = queryset.filter(title__icontains=query)
