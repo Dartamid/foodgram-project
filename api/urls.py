@@ -1,9 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
 
-urlpatterns = [
+api_v1 = [
     path(
         "subscriptions/<int:pk>/",
         views.SubscriptionDeleteAPIView.as_view(),
@@ -39,4 +39,9 @@ urlpatterns = [
         views.IngredientListAPIView.as_view(),
         name="ingredients_list",
     ),
+]
+
+
+urlpatterns = [
+    path('v1/', include(api_v1))
 ]

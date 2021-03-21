@@ -120,7 +120,7 @@ class Subscription(models.Model):
         verbose_name_plural = "Подписки"
 
     def __str__(self):
-        return f"{self.user} подписан на {self.author}"
+        return f"{self.user.full_name} подписан на {self.author.full_name}"
 
 
 class Favorite(models.Model):
