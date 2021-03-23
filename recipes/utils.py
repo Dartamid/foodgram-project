@@ -15,6 +15,8 @@ def create_ingridients(recipe, data):
         if arg[0] == "nameIngredient":
             title = value
         if arg[0] == "valueIngredient":
+            if int(value) <= 0:
+                value = abs(int(value))
             ingredient, _ = Ingredient.objects.get_or_create(
                 title=title, defaults={"dimension": "шт"}
             )
